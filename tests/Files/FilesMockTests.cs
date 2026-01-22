@@ -604,6 +604,29 @@ public class FilesMockTests : ClientTestBase
         FileUploadOptions options = new();
         Assert.That(options.ExpiresAfterDays, Is.Null);
     }
+
+    [Test]
+    public void FileUploadOptionsThrowsOnInvalidExpiresAfterDays()
+    {
+        FileUploadOptions options = new();
+        Assert.That(() => options.ExpiresAfterDays = 0, Throws.TypeOf<ArgumentOutOfRangeException>());
+        Assert.That(() => options.ExpiresAfterDays = -1, Throws.TypeOf<ArgumentOutOfRangeException>());
+        Assert.That(() => options.ExpiresAfterDays = -100, Throws.TypeOf<ArgumentOutOfRangeException>());
+    }
+
+    [Test]
+    public void FileUploadOptionsAcceptsValidExpiresAfterDays()
+    {
+        FileUploadOptions options = new();
+        Assert.That(() => options.ExpiresAfterDays = 1, Throws.Nothing);
+        Assert.That(options.ExpiresAfterDays, Is.EqualTo(1));
+
+        Assert.That(() => options.ExpiresAfterDays = 365, Throws.Nothing);
+        Assert.That(options.ExpiresAfterDays, Is.EqualTo(365));
+
+        Assert.That(() => options.ExpiresAfterDays = null, Throws.Nothing);
+        Assert.That(options.ExpiresAfterDays, Is.Null);
+    }
 #pragma warning restore OPENAI001
 
     private OpenAIClientOptions GetClientOptionsWithMockResponse(int status, string content)

@@ -8,6 +8,8 @@ namespace OpenAI.Files;
 /// </summary>
 public class FileUploadOptions
 {
+    private int? _expiresAfterDays;
+
     /// <summary>
     /// Creates a new instance of <see cref="FileUploadOptions"/>.
     /// </summary>
@@ -27,6 +29,18 @@ public class FileUploadOptions
     /// This property is optional. When not set (null), the file will not expire automatically.
     /// </para>
     /// </remarks>
+    /// <exception cref="ArgumentOutOfRangeException">The value must be greater than zero.</exception>
     [Experimental("OPENAI001")]
-    public int? ExpiresAfterDays { get; set; }
+    public int? ExpiresAfterDays
+    {
+        get => _expiresAfterDays;
+        set
+        {
+            if (value.HasValue && value.Value <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(value), value, "ExpiresAfterDays must be greater than zero.");
+            }
+            _expiresAfterDays = value;
+        }
+    }
 }
