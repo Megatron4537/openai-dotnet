@@ -478,6 +478,9 @@ public partial class OpenAIFileClient
     // CUSTOM: Helper constant for converting days to seconds
     private const int SecondsPerDay = 24 * 60 * 60;
 
+    // CUSTOM: Helper constant for the expiration anchor (always "created_at" per OpenAI spec)
+    private const string ExpirationAnchor = "created_at";
+
     // CUSTOM: Helper method to create internal upload options from public options
     private static InternalFileUploadOptions CreateInternalUploadOptions(FileUploadPurpose purpose, FileUploadOptions options)
     {
@@ -489,7 +492,7 @@ public partial class OpenAIFileClient
         if (options?.ExpiresAfterDays != null)
         {
             int expirationSeconds = options.ExpiresAfterDays.Value * SecondsPerDay;
-            internalOptions.ExpiresAfter = new InternalFileExpirationAfter("created_at", expirationSeconds);
+            internalOptions.ExpiresAfter = new InternalFileExpirationAfter(ExpirationAnchor, expirationSeconds);
         }
 
         return internalOptions;
