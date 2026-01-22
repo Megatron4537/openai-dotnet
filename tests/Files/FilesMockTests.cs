@@ -388,6 +388,9 @@ public class FilesMockTests : ClientTestBase
     }
 
 #pragma warning disable OPENAI001
+    // Helper constant matching the one in OpenAIFileClient
+    private const int SecondsPerDay = 24 * 60 * 60;
+
     [Test]
     public async Task UploadFileWithOptionsIncludesExpiresAfter()
     {
@@ -415,9 +418,10 @@ public class FilesMockTests : ClientTestBase
         OpenAIFileClient client = CreateProxyFromClient(new OpenAIFileClient(s_fakeCredential, clientOptions));
         using var file = new MemoryStream(System.Text.Encoding.UTF8.GetBytes("test content"));
 
+        int expiresAfterDays = 7;
         FileUploadOptions uploadOptions = new()
         {
-            ExpiresAfterDays = 7
+            ExpiresAfterDays = expiresAfterDays
         };
 
         OpenAIFile fileInfo = await client.UploadFileAsync(file, "test.txt", FileUploadPurpose.Assistants, uploadOptions);
@@ -425,8 +429,8 @@ public class FilesMockTests : ClientTestBase
         Assert.That(fileInfo.Id, Is.EqualTo("returned_file_id"));
         Assert.That(capturedRequestContent, Does.Contain("expires_after"));
         Assert.That(capturedRequestContent, Does.Contain("created_at"));
-        // 7 days = 7 * 24 * 60 * 60 = 604800 seconds
-        Assert.That(capturedRequestContent, Does.Contain("604800"));
+        int expectedSeconds = expiresAfterDays * SecondsPerDay;
+        Assert.That(capturedRequestContent, Does.Contain(expectedSeconds.ToString()));
     }
 
     [Test]
@@ -490,9 +494,10 @@ public class FilesMockTests : ClientTestBase
         string filename = "images_dog_and_cat.png";
         string path = Path.Combine("Assets", filename);
 
+        int expiresAfterDays = 30;
         FileUploadOptions uploadOptions = new()
         {
-            ExpiresAfterDays = 30
+            ExpiresAfterDays = expiresAfterDays
         };
 
         OpenAIFile fileInfo;
@@ -520,8 +525,8 @@ public class FilesMockTests : ClientTestBase
         Assert.That(fileInfo.Id, Is.EqualTo("returned_file_id"));
         Assert.That(capturedRequestContent, Does.Contain("expires_after"));
         Assert.That(capturedRequestContent, Does.Contain("created_at"));
-        // 30 days = 30 * 24 * 60 * 60 = 2592000 seconds
-        Assert.That(capturedRequestContent, Does.Contain("2592000"));
+        int expectedSeconds = expiresAfterDays * SecondsPerDay;
+        Assert.That(capturedRequestContent, Does.Contain(expectedSeconds.ToString()));
     }
 
     [Test]

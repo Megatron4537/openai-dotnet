@@ -147,16 +147,7 @@ public partial class OpenAIFileClient
         Argument.AssertNotNull(file, nameof(file));
         Argument.AssertNotNullOrEmpty(filename, nameof(filename));
 
-        InternalFileUploadOptions internalOptions = new()
-        {
-            Purpose = purpose
-        };
-
-        if (options?.ExpiresAfterDays != null)
-        {
-            int daysToSeconds = options.ExpiresAfterDays.Value * 24 * 60 * 60;
-            internalOptions.ExpiresAfter = new InternalFileExpirationAfter("created_at", daysToSeconds);
-        }
+        InternalFileUploadOptions internalOptions = CreateInternalUploadOptions(purpose, options);
 
         using MultiPartFormDataBinaryContent content = internalOptions.ToMultipartContent(file, filename);
         ClientResult result = await UploadFileAsync(content, content.ContentType, cancellationToken.ToRequestOptions()).ConfigureAwait(false);
@@ -209,16 +200,7 @@ public partial class OpenAIFileClient
         Argument.AssertNotNull(file, nameof(file));
         Argument.AssertNotNullOrEmpty(filename, nameof(filename));
 
-        InternalFileUploadOptions internalOptions = new()
-        {
-            Purpose = purpose
-        };
-
-        if (options?.ExpiresAfterDays != null)
-        {
-            int daysToSeconds = options.ExpiresAfterDays.Value * 24 * 60 * 60;
-            internalOptions.ExpiresAfter = new InternalFileExpirationAfter("created_at", daysToSeconds);
-        }
+        InternalFileUploadOptions internalOptions = CreateInternalUploadOptions(purpose, options);
 
         using MultiPartFormDataBinaryContent content = internalOptions.ToMultipartContent(file, filename);
         ClientResult result = UploadFile(content, content.ContentType, cancellationToken.ToRequestOptions());
@@ -491,5 +473,25 @@ public partial class OpenAIFileClient
 
         ClientResult result = DownloadFile(fileId, cancellationToken.ToRequestOptions());
         return ClientResult.FromValue(result.GetRawResponse().Content, result.GetRawResponse());
+    }
+
+    // CUSTOM: Helper constant for converting days to seconds
+    private const int SecondsPerDay = 24 * 60 * 60;
+
+    // CUSTOM: Helper method to create internal upload options from public options
+    private static InternalFileUploadOptions CreateInternalUploadOptions(FileUploadPurpose purpose, FileUploadOptions options)
+    {
+        InternalFileUploadOptions internalOptions = new()
+        {
+            Purpose = purpose
+        };
+
+        if (options?.ExpiresAfterDays != null)
+        {
+            int expirationSeconds = options.ExpiresAfterDays.Value * SecondsPerDay;
+            internalOptions.ExpiresAfter = new InternalFileExpirationAfter("created_at", expirationSeconds);
+        }
+
+        return internalOptions;
     }
 }
